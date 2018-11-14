@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @Autonomous(name="Auto Op", group="opMode")
@@ -10,15 +11,9 @@ public class BasicOpMode_Linear extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftFrontDrive = null;
-    private DcMotor rightFrontDrive = null;
-    private DcMotor leftRearDrive = null;
-    private DcMotor rightRearDrive = null;
-    private DcMotor rightRise = null;
-    private DcMotor leftRise = null;
 
-    private DcMotor [] wheelMotors = {};
-    private DcMotor [] riseMotors = {};
+    private DcMotor wheelMotors[] = new DcMotor[4];
+    private DcMotor riseMotors[] = new DcMotor[2];
 
     @Override
     public void runOpMode() throws InterruptedException{
@@ -29,25 +24,28 @@ public class BasicOpMode_Linear extends LinearOpMode {
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
 
-        leftFrontDrive  = hardwareMap.get(DcMotor.class, "left_front_drive");
-        rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
-        leftRearDrive = hardwareMap.get(DcMotor.class, "left_rear_drive");
-        rightRearDrive = hardwareMap.get(DcMotor.class,"right_rear_drive");
-        rightRise = hardwareMap.get(DcMotor.class,"right_rise");
-        leftRise = hardwareMap.get(DcMotor.class,"left_rise");
+        // 0 -> leftFrontDrive
+        // 1 -> rightFrontDrive
+        // 2 -> leftRearDrive
+        // 3 -> rightRearDrive
 
-        wheelMotors[0] = leftFrontDrive;
-        wheelMotors[1] = rightFrontDrive;
-        wheelMotors[2] = leftRearDrive;
-        wheelMotors[3] = rightRearDrive;
+        wheelMotors[0] = hardwareMap.get(DcMotor.class, "left_front_drive");
+        wheelMotors[1] = hardwareMap.get(DcMotor.class, "right_front_drive");
+        wheelMotors[2] = hardwareMap.get(DcMotor.class, "left_rear_drive");
+        wheelMotors[3] = hardwareMap.get(DcMotor.class,"right_rear_drive");
 
-        riseMotors[0] = leftRise;
-        riseMotors[1] = rightRise;
+        riseMotors[0] = hardwareMap.get(DcMotor.class,"left_rise");;
+        riseMotors[1] = hardwareMap.get(DcMotor.class,"right_rise");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        for(int i = 0; i < wheelMotors.length; i++){
-            wheelMotors[i].setDirection(DcMotor.Direction.FORWARD);
+        wheelMotors[0].setDirection(DcMotor.Direction.REVERSE);
+        wheelMotors[1].setDirection(DcMotor.Direction.FORWARD);
+        wheelMotors[2].setDirection(DcMotor.Direction.REVERSE);
+        wheelMotors[3].setDirection(DcMotor.Direction.FORWARD);
+
+        for(DcMotor riser: riseMotors){
+            riser.setDirection(DcMotor.Direction.REVERSE);
         }
 
 
@@ -58,28 +56,19 @@ public class BasicOpMode_Linear extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            for( DcMotor riser: riseMotors){
-                riser.setPower(-0.255);
-            }
+            wheelMotors[0].setPower(0.5);
+            Thread.sleep(2000);
+            wheelMotors[1].setPower(0.5);
+            Thread.sleep(2000);
+            wheelMotors[2].setPower(0.5);
+            Thread.sleep(2000);
+            wheelMotors[3].setPower(0.5);
+            Thread.sleep(2000);
 
-            Thread.sleep(8000);
-
-            for( DcMotor riser: riseMotors){
-                riser.setPower(0.255);
-            }
-
-            Thread.sleep(8000);
-
-            for ( DcMotor motor : wheelMotors) {
-                motor.setPower(0.255);
-            }
-            Thread.sleep(1000);
-
-            for( DcMotor motor : wheelMotors){
-                motor.setPower(0.255);
-            }
-            Thread.sleep(1000);
-
+            wheelMotors[0].setPower(0);
+            wheelMotors[1].setPower(0);
+            wheelMotors[2].setPower(0);
+            wheelMotors[3].setPower(0);
         }
     }
 }
