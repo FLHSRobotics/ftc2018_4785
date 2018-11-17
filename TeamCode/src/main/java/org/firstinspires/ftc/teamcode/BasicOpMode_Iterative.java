@@ -3,7 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.util.RollingAverage;
 
 
 @TeleOp(name="TelOp Mode", group="opMode")
@@ -18,6 +21,7 @@ public class BasicOpMode_Iterative extends OpMode
     private DcMotor rightRearDrive = null;
     private DcMotor rightRise = null;
     private DcMotor leftRise = null;
+    private DcMotor landingDoor = null;
 
     /*
      * Code to run ONCE when the driver hits INIT
@@ -36,13 +40,16 @@ public class BasicOpMode_Iterative extends OpMode
         rightRise = hardwareMap.get(DcMotor.class,"right_rise");
         leftRise = hardwareMap.get(DcMotor.class,"left_rise");
 
+        landingDoor = hardwareMap.get(DcMotor.class, "landing_door");
+
+
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
-        leftRearDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        leftFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        leftRearDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightRearDrive.setDirection(DcMotor.Direction.FORWARD);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Initialized");
@@ -68,23 +75,20 @@ public class BasicOpMode_Iterative extends OpMode
      */
     @Override
     public void loop() {
-        double leftFrontPower,rightFrontPower,leftRearPower,rightRearPower,risePower;
-        double drive,strafe,rotate;
+        double leftFrontPower,rightFrontPower,leftRearPower,rightRearPower,risePower,doorPower;
 
-        // Choose to drive using either Tank Mode, or POV Mode
-        // Comment out the method that's not used.  The default below is POV.
+        double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
+        double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
+        double rightX = gamepad1.right_stick_x;
+        final double v1 = r * Math.cos(robotAngle) + rightX;
+        final double v2 = r * Math.sin(robotAngle) - rightX;
+        final double v3 = r * Math.sin(robotAngle) + rightX;
+        final double v4 = r * Math.cos(robotAngle) - rightX;
 
-        // POV Mode uses left stick to go forward, and right stick to turn.
-        // - This uses basic math to combine motions and is easier to drive straight.
-
-        drive = -gamepad1.right_stick_y;  // Negative because the gamepad is weird
-        strafe = gamepad1.left_stick_x;
-        rotate = gamepad1.left_stick_y;
-
-        leftFrontPower = drive + strafe + rotate;
-        leftRearPower = drive - strafe + rotate;
-        rightFrontPower = drive - strafe - rotate;
-        rightRearPower = drive + strafe - rotate;
+        leftFrontPower = v1;
+        leftRearPower = v3;
+        rightFrontPower = v2;
+        rightRearPower = v4;
 
         if(gamepad1.right_bumper){
             risePower = 0.255;
@@ -94,12 +98,17 @@ public class BasicOpMode_Iterative extends OpMode
             risePower = 0.000;
         }
 
+        if(gamepad1.dpad_up){
+            doorPower = 0.255;
+        }else if(gamepad1.dpad_down){
+            doorPower = -0.255;
+        }else{
+            doorPower = 0;
+        }
+
 
         // Tank Mode uses one stick to control each wheel.
         // - This requires no math, but it is hard to drive forward slowly and keep straight.
-        // leftPower  = -gamepad1.left_stick_y ;
-        // rightPower = -gamepad1.right_stick_y ;
-
         // Send calculated power to wheelss
         leftFrontDrive.setPower(leftFrontPower);
         rightFrontDrive.setPower(rightFrontPower);
@@ -109,12 +118,14 @@ public class BasicOpMode_Iterative extends OpMode
         leftRise.setPower(risePower);
         rightRise.setPower(-risePower);
 
+        landingDoor.setPower(doorPower);
 
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time :" + runtime.toString());
         telemetry.addData("Gamepad","LeftStick X(%.2f) LeftStick Y(%.2f) RightStick X(%.2f) RightStick Y(%.2f)",gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1.right_stick_y);
         telemetry.addData("Motors", "left front(%.2f), right front (%.2f), left rear (%.2f), right rear(%.2f)", leftFrontPower, rightFrontPower,leftRearPower,rightRearPower);
         telemetry.addData("Hook Power","Right Hook %.2f, Left Hook %.2f",risePower,-risePower);
+        telemetry.addData("Landing Door Power","power: %.2f", doorPower);
         telemetry.update();
     }
 
