@@ -15,5 +15,6 @@ public class FtcOpModeRegister implements OpModeRegister{
     public void register(OpModeManager manager) {
          manager.register("Iterative Opmode",BasicOpMode_Iterative.class);
          manager.register("Linear Opmode", BasicOpMode_Linear.class);
+         manager.register("Vuforia Navi",ConceptVuforiaNavRoverRuckus.class);
     }
 }

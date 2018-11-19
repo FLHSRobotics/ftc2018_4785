@@ -1,12 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
 import org.firstinspires.ftc.robotcore.external.matrices.OpenGLMatrix;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
@@ -23,15 +22,60 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AxesReference.
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.BACK;
 import static org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection.FRONT;
 
-@Autonomous(name = "Autonomous Mode", group = "opMode")
-public class BasicOpMode_Linear extends LinearOpMode {
 
-    // Declare OpMode members.
-    private ElapsedTime runtime = new ElapsedTime();
+/**
+ * This 2018-2019 OpMode illustrates the basics of using the Vuforia localizer to determine
+ * positioning and orientation of robot on the FTC field.
+ * The code is structured as a LinearOpMode
+ *
+ * Vuforia uses the phone's camera to inspect it's surroundings, and attempt to locate target images.
+ *
+ * When images are located, Vuforia is able to determine the position and orientation of the
+ * image relative to the camera.  This sample code than combines that information with a
+ * knowledge of where the target images are on the field, to determine the location of the camera.
+ *
+ * This example assumes a "square" field configuration where the red and blue alliance stations
+ * are on opposite walls of each other.
+ *
+ * From the Audience perspective, the Red Alliance station is on the right and the
+ * Blue Alliance Station is on the left.
 
-    private DcMotor wheelMotors[] = new DcMotor[4];
-    private DcMotor riseMotors[] = new DcMotor[2];
+ * The four vision targets are located in the center of each of the perimeter walls with
+ * the images facing inwards towards the robots:
+ *     - BlueRover is the Mars Rover image target on the wall closest to the blue alliance
+ *     - RedFootprint is the Lunar Footprint target on the wall closest to the red alliance
+ *     - FrontCraters is the Lunar Craters image target on the wall closest to the audience
+ *     - BackSpace is the Deep Space image target on the wall farthest from the audience
+ *
+ * A final calculation then uses the location of the camera on the robot to determine the
+ * robot's location and orientation on the field.
+ *
+ * @see VuforiaLocalizer
+ * @see VuforiaTrackableDefaultListener
+ * see  ftc_app/doc/tutorial/FTC_FieldCoordinateSystemDefinition.pdf
+ *
+ * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list.
+ *
+ * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
+ * is explained below.
+ */
 
+@TeleOp(name="Concept: Vuforia Rover Nav", group ="Concept")
+public class ConceptVuforiaNavRoverRuckus extends LinearOpMode {
+
+    /*
+     * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
+     * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
+     * A Vuforia 'Development' license key, can be obtained free of charge from the Vuforia developer
+     * web site at https://developer.vuforia.com/license-manager.
+     *
+     * Vuforia license keys are always 380 characters long, and look as if they contain mostly
+     * random data. As an example, here is a example of a fragment of a valid key:
+     *      ... yIgIzTqZ4mWjk9wd3cZO9T1axEqzuhxoGlfOOI2dRzKS4T0hQ8kT ...
+     * Once you've obtained a license key, copy the string from the Vuforia web site
+     * and paste it in to your code on the next line, between the double quotes.
+     */
     private static final String VUFORIA_KEY = "AWPCDaj/////AAABmeguUC/ZoEZ5jFEMTMHSLkYkZj3gpVNWD0qoyHI1EnZ2ZmCkYZSJZ8dJPlUQbR3pHzsa0vrVjkn3m5UJtxWRyMicaq00qU4d9VRfi9ew+3Pqo/pNMUXOmjv01Ivl7YRUytf0jBwTuDCkNgCMBoj6CM0RUSPbRwL3Zh+8HZVsjtEodE7z4RqoTvK5OggDmHBWDbB6cLUfGMIoekyR6REvUNFK9Qj5Raw0amN6zldDqQgsy49oXeYSuO+/SDIncOumkjvneHKfApY846FgIODcqqPNOI9eCwfyW9wc6eeDRZSqhWLZNM6JDALwZ6aOrdPF5Zb27ptuZ8cw3VV91A6fwgIU5Y3SVF0nSr13PAXk2LqY";
 
     // Since ImageTarget trackables use mm to specifiy their dimensions, we must use mm for all the physical dimension.
@@ -53,11 +97,12 @@ public class BasicOpMode_Linear extends LinearOpMode {
      */
     VuforiaLocalizer vuforia;
 
-    @Override
-    public void runOpMode() throws InterruptedException {
-        telemetry.addData("Status", "Initialized");
-        telemetry.update();
-
+    @Override public void runOpMode() {
+        /*
+         * Configure Vuforia by creating a Parameter object, and passing it to the Vuforia engine.
+         * We can pass Vuforia the handle to a camera preview resource (on the RC phone);
+         * If no camera monitor is desired, use the parameterless constructor instead (commented out below).
+         */
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
 
@@ -192,60 +237,44 @@ public class BasicOpMode_Linear extends LinearOpMode {
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start tracking");
         telemetry.update();
-
-
-        // 0 -> leftFrontDrive
-        // 1 -> rightFrontDrive
-        // 2 -> leftRearDrive
-        // 3 -> rightRearDrive
-
-        wheelMotors[0] = hardwareMap.get(DcMotor.class, "left_front_drive");
-        wheelMotors[1] = hardwareMap.get(DcMotor.class, "right_front_drive");
-        wheelMotors[2] = hardwareMap.get(DcMotor.class, "left_rear_drive");
-        wheelMotors[3] = hardwareMap.get(DcMotor.class, "right_rear_drive");
-
-        riseMotors[0] = hardwareMap.get(DcMotor.class, "left_rise");
-        riseMotors[1] = hardwareMap.get(DcMotor.class, "right_rise");
-
-
-
-        // Most robots need the motor on one side to be reversed to drive forward
-        // Reverse the motor that runs backwards when connected directly to the battery
-        wheelMotors[0].setDirection(DcMotor.Direction.REVERSE);
-        wheelMotors[1].setDirection(DcMotor.Direction.FORWARD);
-        wheelMotors[2].setDirection(DcMotor.Direction.REVERSE);
-        wheelMotors[3].setDirection(DcMotor.Direction.FORWARD);
-
-
-        // Wait for the game to start (driver presses PLAY)
         waitForStart();
-        runtime.reset();
 
+        /** Start tracking the data sets we care about. */
         targetsRoverRuckus.activate();
+        while (opModeIsActive()) {
 
+            // check all the trackable target to see which one (if any) is visible.
+            targetVisible = false;
+            for (VuforiaTrackable trackable : allTrackables) {
+                if (((VuforiaTrackableDefaultListener)trackable.getListener()).isVisible()) {
+                    telemetry.addData("Visible Target", trackable.getName());
+                    targetVisible = true;
 
-        // run until the end of the match (driver presses STOP)
-        riseMotors[0].setPower(0.5);
-        riseMotors[1].setPower(-0.5);
-        Thread.sleep(4000);
-        riseMotors[0].setPower(0);
-        riseMotors[1].setPower(0);
+                    // getUpdatedRobotLocation() will return null if no new information is available since
+                    // the last time that call was made, or if the trackable is not currently visible.
+                    OpenGLMatrix robotLocationTransform = ((VuforiaTrackableDefaultListener)trackable.getListener()).getUpdatedRobotLocation();
+                    if (robotLocationTransform != null) {
+                        lastLocation = robotLocationTransform;
+                    }
+                    break;
+                }
+            }
 
-        wheelMotors[0].setPower(-1);
-        wheelMotors[1].setPower(1);
-        wheelMotors[2].setPower(1);
-        wheelMotors[3].setPower(-1);
-        Thread.sleep(250);
+            // Provide feedback as to where the robot is located (if we know).
+            if (targetVisible) {
+                // express position (translation) of robot in inches.
+                VectorF translation = lastLocation.getTranslation();
+                telemetry.addData("Pos (in)", "{X, Y, Z} = %.1f, %.1f, %.1f",
+                        translation.get(0) / mmPerInch, translation.get(1) / mmPerInch, translation.get(2) / mmPerInch);
 
-        wheelMotors[0].setPower(1);
-        wheelMotors[1].setPower(1);
-        wheelMotors[2].setPower(1);
-        wheelMotors[3].setPower(1);
-        Thread.sleep(2000);
-
-        wheelMotors[0].setPower(0);
-        wheelMotors[1].setPower(0);
-        wheelMotors[2].setPower(0);
-        wheelMotors[3].setPower(0);
+                // express the rotation of the robot in degrees.
+                Orientation rotation = Orientation.getOrientation(lastLocation, EXTRINSIC, XYZ, DEGREES);
+                telemetry.addData("Rot (deg)", "{Roll, Pitch, Heading} = %.0f, %.0f, %.0f", rotation.firstAngle, rotation.secondAngle, rotation.thirdAngle);
+            }
+            else {
+                telemetry.addData("Visible Target", "none");
+            }
+            telemetry.update();
+        }
     }
 }
