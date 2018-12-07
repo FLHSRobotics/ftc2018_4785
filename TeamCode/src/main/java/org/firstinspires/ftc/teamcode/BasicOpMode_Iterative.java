@@ -37,9 +37,6 @@ public class BasicOpMode_Iterative extends OpMode
         rightRise = hardwareMap.get(DcMotor.class,"right_rise");
         leftRise = hardwareMap.get(DcMotor.class,"left_rise");
 
-        landingDoor = hardwareMap.get(DcMotor.class, "landing_door");
-
-
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -72,7 +69,7 @@ public class BasicOpMode_Iterative extends OpMode
      */
     @Override
     public void loop() {
-        double leftFrontPower,rightFrontPower,leftRearPower,rightRearPower,risePower,doorPower;
+        double leftFrontPower,rightFrontPower,leftRearPower,rightRearPower,risePower;
 
         double r = Math.hypot(gamepad1.left_stick_x, gamepad1.left_stick_y);
         double robotAngle = Math.atan2(gamepad1.left_stick_y, gamepad1.left_stick_x) - Math.PI / 4;
@@ -95,15 +92,6 @@ public class BasicOpMode_Iterative extends OpMode
             risePower = 0.000;
         }
 
-        if(gamepad1.dpad_up){
-            doorPower = 0.255;
-        }else if(gamepad1.dpad_down){
-            doorPower = -0.255;
-        }else{
-            doorPower = 0;
-        }
-
-
         // Tank Mode uses one stick to control each wheel.
         // - This requires no math, but it is hard to drive forward slowly and keep straight.
         // Send calculated power to wheelss
@@ -115,14 +103,11 @@ public class BasicOpMode_Iterative extends OpMode
         leftRise.setPower(risePower);
         rightRise.setPower(-risePower);
 
-        landingDoor.setPower(doorPower);
-
         // Show the elapsed game time and wheel power.
         telemetry.addData("Status", "Run Time :" + runtime.toString());
         telemetry.addData("Gamepad","LeftStick X(%.2f) LeftStick Y(%.2f) RightStick X(%.2f) RightStick Y(%.2f)",gamepad1.left_stick_x,gamepad1.left_stick_y,gamepad1.right_stick_x,gamepad1.right_stick_y);
         telemetry.addData("Motors", "left front(%.2f), right front (%.2f), left rear (%.2f), right rear(%.2f)", leftFrontPower, rightFrontPower,leftRearPower,rightRearPower);
         telemetry.addData("Hook Power","Right Hook %.2f, Left Hook %.2f",risePower,-risePower);
-        telemetry.addData("Landing Door Power","power: %.2f", doorPower);
         telemetry.update();
     }
 

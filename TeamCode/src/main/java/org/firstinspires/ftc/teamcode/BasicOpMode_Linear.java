@@ -157,7 +157,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
          * The coordinate frame for the robot looks the same as the field.
          * The robot's "forward" direction is facing out along X axis, with the LEFT side facing out along the Y axis.
          * Z is UP on the robot.  This equates to a bearing angle of Zero degrees.
-         *
+         *------------------------------------------------------------------------------------------
          * The phone starts out lying flat, with the screen facing Up and with the physical top of the phone
          * pointing to the LEFT side of the Robot.  It's very important when you test this code that the top of the
          * camera is pointing to the left side of the  robot.  The rotation angles don't work if you flip the phone.
@@ -235,7 +235,13 @@ public class BasicOpMode_Linear extends LinearOpMode {
         wheelMotors[1].setPower(1);
         wheelMotors[2].setPower(1);
         wheelMotors[3].setPower(-1);
-        Thread.sleep(250);
+        Thread.sleep(500);
+
+        riseMotors[0].setPower(-0.5);
+        riseMotors[1].setPower(0.5);
+        Thread.sleep(4000);
+        riseMotors[0].setPower(0);
+        riseMotors[1].setPower(0);
 
         wheelMotors[0].setPower(1);
         wheelMotors[1].setPower(1);
@@ -247,5 +253,7 @@ public class BasicOpMode_Linear extends LinearOpMode {
         wheelMotors[1].setPower(0);
         wheelMotors[2].setPower(0);
         wheelMotors[3].setPower(0);
+
+
     }
 }
